@@ -148,6 +148,8 @@ void prepare_repo_settings(struct repository *r)
 
 	if (!repo_config_get_ulong(r, "core.packedgitlimit", &ulongval))
 		r->settings.packed_git_limit = ulongval;
+	
+	r->settings.comment_line_str = '#';
 }
 
 void repo_settings_clear(struct repository *r)

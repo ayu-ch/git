@@ -1,4 +1,3 @@
-#define USE_THE_REPOSITORY_VARIABLE
 #define DISABLE_SIGN_COMPARE_WARNINGS
 
 #include "git-compat-util.h"
@@ -411,7 +410,7 @@ static int normalize_marker(const char *p)
 	return p[0] == '\n' || (p[0] == '\r' && p[1] == '\n') ? ' ' : p[0];
 }
 
-static int parse_diff(struct add_p_state *s, const struct pathspec *ps)
+static int parse_diff(struct repository *r, struct add_p_state *s, const struct pathspec *ps)
 {
 	struct strvec args = STRVEC_INIT;
 	const char *diff_algorithm = s->s.interactive_diff_algorithm;
@@ -431,8 +430,8 @@ static int parse_diff(struct add_p_state *s, const struct pathspec *ps)
 		strvec_push(&args,
 			    /* could be on an unborn branch */
 			    !strcmp("HEAD", s->revision) &&
-			    repo_get_oid(the_repository, "HEAD", &oid) ?
-			    empty_tree_oid_hex(the_repository->hash_algo) : s->revision);
+			    repo_get_oid(r, "HEAD", &oid) ?
+			    empty_tree_oid_hex(r->hash_algo) : s->revision);
 	}
 	color_arg_index = args.nr;
 	/* Use `--no-color` explicitly, just in case `diff.color = always`. */
@@ -1112,16 +1111,16 @@ static void recolor_hunk(struct add_p_state *s, struct hunk *hunk)
 	hunk->colored_end = s->colored.len;
 }
 
-static int edit_hunk_manually(struct add_p_state *s, struct hunk *hunk)
+static int edit_hunk_manually(struct repository *r, struct add_p_state *s, struct hunk *hunk)
 {
 	size_t i;
 
 	strbuf_reset(&s->buf);
-	strbuf_commented_addf(&s->buf, comment_line_str,
+	strbuf_commented_addf(&s->buf, r->settings.comment_line_str,
 			      _("Manual hunk edit mode -- see bottom for "
 				"a quick guide.\n"));
 	render_hunk(s, hunk, 0, 0, &s->buf);
-	strbuf_commented_addf(&s->buf, comment_line_str,
+	strbuf_commented_addf(&s->buf, r->settings.comment_line_str,
 			      _("---\n"
 				"To remove '%c' lines, make them ' ' lines "
 				"(context).\n"
@@ -1129,21 +1128,21 @@ static int edit_hunk_manually(struct add_p_state *s, struct hunk *hunk)
 				"Lines starting with %s will be removed.\n"),
 			      s->mode->is_reverse ? '+' : '-',
 			      s->mode->is_reverse ? '-' : '+',
-			      comment_line_str);
-	strbuf_commented_addf(&s->buf, comment_line_str, "%s",
+			      r->settings.comment_line_str);
+	strbuf_commented_addf(&s->buf, r->settings.comment_line_str, "%s",
 			      _(s->mode->edit_hunk_hint));
 	/*
 	 * TRANSLATORS: 'it' refers to the patch mentioned in the previous
 	 * messages.
 	 */
-	strbuf_commented_addf(&s->buf, comment_line_str,
+	strbuf_commented_addf(&s->buf, r->settings.comment_line_str,
 			      _("If it does not apply cleanly, you will be "
 				"given an opportunity to\n"
 				"edit again.  If all lines of the hunk are "
 				"removed, then the edit is\n"
 				"aborted and the hunk is left unchanged.\n"));
 
-	if (strbuf_edit_interactively(the_repository, &s->buf,
+	if (strbuf_edit_interactively(r, &s->buf,
 				      "addp-hunk-edit.diff", NULL) < 0)
 		return -1;
 
@@ -1152,7 +1151,7 @@ static int edit_hunk_manually(struct add_p_state *s, struct hunk *hunk)
 	for (i = 0; i < s->buf.len; ) {
 		size_t next = find_next_line(&s->buf, i);
 
-		if (!starts_with(s->buf.buf + i, comment_line_str))
+		if (!starts_with(s->buf.buf + i, r->settings.comment_line_str))
 			strbuf_add(&s->plain, s->buf.buf + i, next - i);
 		i = next;
 	}
@@ -1249,7 +1248,7 @@ static int prompt_yesno(struct add_p_state *s, const char *prompt)
 	}
 }
 
-static int edit_hunk_loop(struct add_p_state *s,
+static int edit_hunk_loop(struct repository *r, struct add_p_state *s,
 			  struct file_diff *file_diff, struct hunk *hunk)
 {
 	size_t plain_len = s->plain.len, colored_len = s->colored.len;
@@ -1258,7 +1257,7 @@ static int edit_hunk_loop(struct add_p_state *s,
 	backup = *hunk;
 
 	for (;;) {
-		int res = edit_hunk_manually(s, hunk);
+		int res = edit_hunk_manually(r, s, hunk);
 		if (res == 0) {
 			/* abandoned */
 			*hunk = backup;
@@ -1405,7 +1404,7 @@ N_("j - leave this hunk undecided, see next undecided hunk\n"
    "p - print the current hunk, 'P' to use the pager\n"
    "? - print help\n");
 
-static int patch_update_file(struct add_p_state *s,
+static int patch_update_file(struct repository *r, struct add_p_state *s,
 			     struct file_diff *file_diff)
 {
 	size_t hunk_index = 0;
@@ -1464,7 +1463,7 @@ static int patch_update_file(struct add_p_state *s,
 		if (file_diff->hunk_nr) {
 			if (rendered_hunk_index != hunk_index) {
 				if (use_pager) {
-					setup_pager(the_repository);
+					setup_pager(r);
 					sigchain_push(SIGPIPE, SIG_IGN);
 				}
 				render_hunk(s, hunk, 0, colored, &s->buf);
@@ -1691,7 +1690,7 @@ soft_increment:
 		} else if (s->answer.buf[0] == 'e') {
 			if (!(permitted & ALLOW_EDIT))
 				err(s, _("Sorry, cannot edit this hunk"));
-			else if (edit_hunk_loop(s, file_diff, hunk) >= 0) {
+			else if (edit_hunk_loop(r, s, file_diff, hunk) >= 0) {
 				hunk->use = USE_HUNK;
 				goto soft_increment;
 			}
@@ -1799,7 +1798,7 @@ int run_add_p(struct repository *r, enum add_p_mode mode,
 	    (!s.mode->index_only &&
 	     repo_refresh_and_write_index(r, REFRESH_QUIET, 0, 1,
 					  NULL, NULL, NULL) < 0) ||
-	    parse_diff(&s, ps) < 0) {
+	    parse_diff(r, &s, ps) < 0) {
 		add_p_state_clear(&s);
 		return -1;
 	}
@@ -1807,7 +1806,7 @@ int run_add_p(struct repository *r, enum add_p_mode mode,
 	for (i = 0; i < s.file_diff_nr; i++)
 		if (s.file_diff[i].binary && !s.file_diff[i].hunk_nr)
 			binary_count++;
-		else if (patch_update_file(&s, s.file_diff + i))
+		else if (patch_update_file(r,&s, s.file_diff + i))
 			break;
 
 	if (s.file_diff_nr == 0)
