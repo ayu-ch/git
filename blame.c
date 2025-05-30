@@ -1,4 +1,3 @@
-#define USE_THE_REPOSITORY_VARIABLE
 #define DISABLE_SIGN_COMPARE_WARNINGS
 
 #include "git-compat-util.h"
@@ -158,7 +157,7 @@ static void append_merge_parents(struct repository *r,
 
 	while (!strbuf_getwholeline_fd(&line, merge_head, '\n')) {
 		struct object_id oid;
-		if (get_oid_hex(line.buf, &oid))
+		if (get_oid_hex_algop(line.buf, &oid, r->hash_algo))
 			die("unknown line in '%s': %s",
 			    git_path_merge_head(r), line.buf);
 		tail = append_parent(r, tail, &oid);
@@ -255,7 +254,7 @@ static struct commit *fake_working_tree_commit(struct repository *r,
 		switch (st.st_mode & S_IFMT) {
 		case S_IFREG:
 			if (opt->flags.allow_textconv &&
-			    textconv_object(r, read_from, mode, null_oid(the_hash_algo), 0, &buf_ptr, &buf_len))
+			    textconv_object(r, read_from, mode, null_oid(r->hash_algo), 0, &buf_ptr, &buf_len))
 				strbuf_attach(&buf, buf_ptr, buf_len, buf_len + 1);
 			else if (strbuf_read_file(&buf, read_from, st.st_size) != st.st_size)
 				die_errno("cannot open or read '%s'", read_from);
@@ -277,7 +276,7 @@ static struct commit *fake_working_tree_commit(struct repository *r,
 	convert_to_git(r->index, path, buf.buf, buf.len, &buf, 0);
 	origin->file.ptr = buf.buf;
 	origin->file.size = buf.len;
-	pretend_object_file(the_repository, buf.buf, buf.len, OBJ_BLOB, &origin->blob_oid);
+	pretend_object_file(r, buf.buf, buf.len, OBJ_BLOB, &origin->blob_oid);
 
 	/*
 	 * Read the current index, replace the path entry with
@@ -1041,7 +1040,7 @@ static void fill_origin_blob(struct diff_options *opt,
 				    &o->blob_oid, 1, &file->ptr, &file_size))
 			;
 		else
-			file->ptr = repo_read_object_file(the_repository,
+			file->ptr = repo_read_object_file(opt->repo,
 							  &o->blob_oid, &type,
 							  &file_size);
 		file->size = file_size;
@@ -1249,7 +1248,7 @@ static int fill_blob_sha1_and_mode(struct repository *r,
 		goto error_out;
 	return 0;
  error_out:
-	oidclr(&origin->blob_oid, the_repository->hash_algo);
+	oidclr(&origin->blob_oid, r->hash_algo);
 	origin->mode = S_IFINVALID;
 	return -1;
 }
@@ -2443,7 +2442,7 @@ static void pass_blame(struct blame_scoreboard *sb, struct blame_origin *origin,
 
 			if (sg_origin[i])
 				continue;
-			if (repo_parse_commit(the_repository, p))
+			if (repo_parse_commit(sb->repo, p))
 				continue;
 			porigin = find(sb->repo, p, origin, sb->bloom_data);
 			if (!porigin)
@@ -2606,7 +2605,7 @@ void assign_blame(struct blame_scoreboard *sb, int opt)
 		 * so hold onto it in the meantime.
 		 */
 		blame_origin_incref(suspect);
-		repo_parse_commit(the_repository, commit);
+		repo_parse_commit(sb->repo, commit);
 		if (sb->reverse ||
 		    (!(commit->object.flags & UNINTERESTING) &&
 		     !(revs->max_age != -1 && commit->date < revs->max_age)))
@@ -2703,7 +2702,7 @@ static struct commit *dwim_reverse_initial(struct rev_info *revs,
 		return NULL;
 
 	/* Do we have HEAD? */
-	if (!refs_resolve_ref_unsafe(get_main_ref_store(the_repository), "HEAD", RESOLVE_REF_READING, &head_oid, NULL))
+	if (!refs_resolve_ref_unsafe(get_main_ref_store(revs->repo), "HEAD", RESOLVE_REF_READING, &head_oid, NULL))
 		return NULL;
 	head_commit = lookup_commit_reference_gently(revs->repo,
 						     &head_oid, 1);
@@ -2806,7 +2805,7 @@ void setup_scoreboard(struct blame_scoreboard *sb,
 		if (sb->final) {
 			parent_oid = &sb->final->object.oid;
 		} else {
-			if (!refs_resolve_ref_unsafe(get_main_ref_store(the_repository), "HEAD", RESOLVE_REF_READING, &head_oid, NULL))
+			if (!refs_resolve_ref_unsafe(get_main_ref_store(sb->repo), "HEAD", RESOLVE_REF_READING, &head_oid, NULL))
 				die("no such ref: HEAD");
 			parent_oid = &head_oid;
 		}
@@ -2869,7 +2868,7 @@ void setup_scoreboard(struct blame_scoreboard *sb,
 				    &sb->final_buf_size))
 			;
 		else
-			sb->final_buf = repo_read_object_file(the_repository,
+			sb->final_buf = repo_read_object_file(sb->repo,
 							      &o->blob_oid,
 							      &type,
 							      &sb->final_buf_size);
