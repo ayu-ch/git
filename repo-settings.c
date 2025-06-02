@@ -81,6 +81,7 @@ void prepare_repo_settings(struct repository *r)
 		      &r->settings.pack_use_bitmap_boundary_traversal,
 		      r->settings.pack_use_bitmap_boundary_traversal);
 	repo_cfg_bool(r, "core.usereplacerefs", &r->settings.read_replace_refs, 1);
+	repo_cfg_bool(r, "core.sparsecheckout", &r->settings.sparse_checkout, 0);
 
 	/*
 	 * The GIT_TEST_MULTI_PACK_INDEX variable is special in that
@@ -226,4 +227,16 @@ void repo_settings_set_shared_repository(struct repository *repo, int value)
 void repo_settings_reset_shared_repository(struct repository *repo)
 {
 	repo->settings.shared_repository_initialized = 0;
+}
+
+int repo_settings_get_sparse_checkout(struct repository *repo)
+{
+	prepare_repo_settings(repo);
+	return repo->settings.sparse_checkout;
+}
+
+void repo_settings_set_sparse_checkout(struct repository *repo, int value)
+{
+	prepare_repo_settings(repo);
+	repo->settings.sparse_checkout = value;
 }
