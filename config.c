@@ -1533,23 +1533,6 @@ static int git_default_core_config(const char *var, const char *value,
 		return git_config_string(&editor_program, var, value);
 	}
 
-	if (!strcmp(var, "core.commentchar") ||
-	    !strcmp(var, "core.commentstring")) {
-		if (!value)
-			return config_error_nonbool(var);
-		else if (!strcasecmp(value, "auto"))
-			auto_comment_line_char = 1;
-		else if (value[0]) {
-			if (strchr(value, '\n'))
-				return error(_("%s cannot contain newline"), var);
-			comment_line_str = value;
-			FREE_AND_NULL(comment_line_str_to_free);
-			auto_comment_line_char = 0;
-		} else
-			return error(_("%s must have at least one character"), var);
-		return 0;
-	}
-
 	if (!strcmp(var, "core.askpass")) {
 		FREE_AND_NULL(askpass_program);
 		return git_config_string(&askpass_program, var, value);
@@ -3804,4 +3787,69 @@ int lookup_config(const char **mapping, int nr_mapping, const char *var)
 			return i;
 	}
 	return -1;
+}
+
+static char get_comment_char_auto(const struct strbuf *sb)
+{
+	char candidates[] = "#;@!$%^&|:";
+	char *candidate;
+	const char *p;
+
+	if (!memchr(sb->buf, candidates[0], sb->len))
+		return candidates[0];
+
+	p = sb->buf;
+	candidate = strchr(candidates, *p);
+	if (candidate)
+		*candidate = ' ';
+	for (p = sb->buf; *p; p++) {
+		if ((p[0] == '\n' || p[0] == '\r') && p[1]) {
+			candidate = strchr(candidates, p[1]);
+			if (candidate)
+				*candidate = ' ';
+		}
+	}
+
+	for (p = candidates; *p == ' '; p++)
+		;
+	if (!*p)
+		die(_("unable to select a comment character that is not used\n"
+		      "in the current commit message"));
+
+	return *p;
+}
+
+const char *repo_get_comment_line_str(struct repository *repo, const struct strbuf *sb) {
+    static char buf[2];
+    const char *keys[] = {"core.commentchar", "core.commentstring"};
+    const char *value = NULL;
+
+    for (int i = 0; i < 2; i++) {
+        if (!repo_config_get_string_tmp(repo, keys[i], &value)) {
+            if (!value){
+                config_error_nonbool(keys[i]);
+                return NULL;
+            }
+            if (!value[0]){
+                error(_("%s must have at least one character"), keys[i]);
+                return NULL;
+			}
+            if (strchr(value, '\n')){
+                error(_("%s cannot contain newline"), keys[i]);
+                return NULL;
+			}
+            if (!strcasecmp(value, "auto")) {
+                if (!sb)
+                    return "#";
+                buf[0] = get_comment_char_auto(sb);
+            } else {
+                buf[0] = value[0];
+            }
+
+            buf[1] = '\0';
+            return buf;
+        }
+    }
+
+    return "#";
 }
