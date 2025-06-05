@@ -14,7 +14,7 @@ static void comment_lines(struct strbuf *buf)
 	size_t len;
 
 	msg = strbuf_detach(buf, &len);
-	strbuf_add_commented_lines(buf, msg, len, comment_line_str);
+	strbuf_add_commented_lines(buf, msg, len, repo_get_comment_line_str(the_repository, NULL));
 	free(msg);
 }
 
@@ -63,7 +63,7 @@ int cmd_stripspace(int argc,
 
 	if (mode == STRIP_DEFAULT || mode == STRIP_COMMENTS)
 		strbuf_stripspace(&buf,
-			  mode == STRIP_COMMENTS ? comment_line_str : NULL);
+			  mode == STRIP_COMMENTS ? repo_get_comment_line_str(the_repository, NULL) : NULL);
 	else
 		comment_lines(&buf);
 

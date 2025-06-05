@@ -889,16 +889,16 @@ static void prepare_to_commit(struct commit_list *remoteheads)
 		strbuf_addch(&msg, '\n');
 		if (cleanup_mode == COMMIT_MSG_CLEANUP_SCISSORS) {
 			wt_status_append_cut_line(&msg);
-			strbuf_commented_addf(&msg, comment_line_str, "\n");
+			strbuf_commented_addf(&msg, repo_get_comment_line_str(the_repository, NULL), "\n");
 		}
-		strbuf_commented_addf(&msg, comment_line_str,
+		strbuf_commented_addf(&msg, repo_get_comment_line_str(the_repository, NULL),
 				      _(merge_editor_comment));
 		if (cleanup_mode == COMMIT_MSG_CLEANUP_SCISSORS)
-			strbuf_commented_addf(&msg, comment_line_str,
+			strbuf_commented_addf(&msg, repo_get_comment_line_str(the_repository, NULL),
 					      _(scissors_editor_comment));
 		else
-			strbuf_commented_addf(&msg, comment_line_str,
-				_(no_scissors_editor_comment), comment_line_str);
+			strbuf_commented_addf(&msg, repo_get_comment_line_str(the_repository, NULL),
+				_(no_scissors_editor_comment), repo_get_comment_line_str(the_repository, NULL));
 	}
 	if (signoff)
 		append_signoff(&msg, ignored_log_message_bytes(msg.buf, msg.len), 0);

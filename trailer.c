@@ -868,7 +868,7 @@ static size_t find_trailer_block_start(const char *buf, size_t len)
 
 	/* The first paragraph is the title and cannot be trailers */
 	for (s = buf; s < buf + len; s = next_line(s)) {
-		if (starts_with_mem(s, buf + len - s, comment_line_str))
+		if (starts_with_mem(s, buf + len - s, repo_get_comment_line_str(the_repository, NULL)))
 			continue;
 		if (is_blank_line(s))
 			break;
@@ -888,7 +888,7 @@ static size_t find_trailer_block_start(const char *buf, size_t len)
 		const char **p;
 		ssize_t separator_pos;
 
-		if (starts_with_mem(bol, buf + len - bol, comment_line_str)) {
+		if (starts_with_mem(bol, buf + len - bol, repo_get_comment_line_str(the_repository, NULL))) {
 			non_trailer_lines += possible_continuation_lines;
 			possible_continuation_lines = 0;
 			continue;
@@ -1051,7 +1051,7 @@ struct trailer_block *parse_trailers(const struct process_trailer_options *opts,
 	for (i = 0; i < trailer_block->trailer_nr; i++) {
 		int separator_pos;
 		char *trailer = trailer_block->trailers[i];
-		if (starts_with(trailer, comment_line_str))
+		if (starts_with(trailer, repo_get_comment_line_str(the_repository, NULL)))
 			continue;
 		separator_pos = find_separator(trailer, separators);
 		if (separator_pos >= 1) {
