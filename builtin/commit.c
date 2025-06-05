@@ -683,40 +683,6 @@ static int author_date_is_interesting(void)
 	return author_message || force_date;
 }
 
-static void adjust_comment_line_char(const struct strbuf *sb)
-{
-	char candidates[] = "#;@!$%^&|:";
-	char *candidate;
-	const char *p;
-
-	if (!memchr(sb->buf, candidates[0], sb->len)) {
-		free(comment_line_str_to_free);
-		comment_line_str = comment_line_str_to_free =
-			xstrfmt("%c", candidates[0]);
-		return;
-	}
-
-	p = sb->buf;
-	candidate = strchr(candidates, *p);
-	if (candidate)
-		*candidate = ' ';
-	for (p = sb->buf; *p; p++) {
-		if ((p[0] == '\n' || p[0] == '\r') && p[1]) {
-			candidate = strchr(candidates, p[1]);
-			if (candidate)
-				*candidate = ' ';
-		}
-	}
-
-	for (p = candidates; *p == ' '; p++)
-		;
-	if (!*p)
-		die(_("unable to select a comment character that is not used\n"
-		      "in the current commit message"));
-	free(comment_line_str_to_free);
-	comment_line_str = comment_line_str_to_free = xstrfmt("%c", *p);
-}
-
 static void prepare_amend_commit(struct commit *commit, struct strbuf *sb,
 				struct pretty_print_context *ctx)
 {
@@ -754,6 +720,7 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 	int clean_message_contents = (cleanup_mode != COMMIT_MSG_CLEANUP_NONE);
 	int old_display_comment_prefix;
 	int invoked_hook;
+	const char *comment_line_str;
 
 	/* This checks and barfs if author is badly specified */
 	determine_author_info(author_ident);
@@ -912,10 +879,8 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 	if (fwrite(sb.buf, 1, sb.len, s->fp) < sb.len)
 		die_errno(_("could not write commit template"));
 
-	if (auto_comment_line_char)
-		adjust_comment_line_char(&sb);
-	strbuf_release(&sb);
-
+	comment_line_str = repo_get_comment_line_str(the_repository, &sb);
+	printf("comment_line : %s \n", comment_line_str );
 	/* This checks if committer ident is explicitly given */
 	strbuf_addstr(&committer_ident, git_committer_info(IDENT_STRICT));
 	if (use_editor && include_status) {
@@ -955,15 +920,23 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 					  "	git update-ref -d CHERRY_PICK_HEAD\n"
 					  "and try again.\n"));
 		}
-
 		fprintf(s->fp, "\n");
 		if (cleanup_mode == COMMIT_MSG_CLEANUP_ALL)
-			status_printf(s, GIT_COLOR_NORMAL, hint_cleanup_all, comment_line_str);
+		{
+		printf("%s : commit_msg_cleanup_all\n", comment_line_str);
+		status_printf(s, GIT_COLOR_NORMAL, hint_cleanup_all, comment_line_str);
+	}
 		else if (cleanup_mode == COMMIT_MSG_CLEANUP_SCISSORS) {
 			if (whence == FROM_COMMIT)
 				wt_status_add_cut_line(s);
-		} else /* COMMIT_MSG_CLEANUP_SPACE, that is. */
+		} else /* COMMIT_MSG_CLEANUP_SPACE, that is. */{
+			printf("%s : COMMIT_MSG_CLEANUP_SPACE", comment_line_str);
 			status_printf(s, GIT_COLOR_NORMAL, hint_cleanup_space, comment_line_str);
+		}
+	printf("comment_line new: %s \n", comment_line_str );
+
+
+		strbuf_release(&sb);
 
 		/*
 		 * These should never fail because they come from our own
