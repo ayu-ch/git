@@ -718,6 +718,13 @@ NORETURN void git_die_config_linenr(const char *key, const char *filename, int l
 	lookup_config(mapping, ARRAY_SIZE(mapping), var)
 int lookup_config(const char **mapping, int nr_mapping, const char *var);
 
+
+/*
+ * The character that begins a commented line in user-editable file
+ * that is subject to stripspace.
+ */
+const char *repo_get_comment_line_str(struct repository *repo, const struct strbuf *sb);
+
 # ifdef USE_THE_REPOSITORY_VARIABLE
 static inline void git_config(config_fn_t fn, void *data)
 {

@@ -339,11 +339,11 @@ static void create_tag(const struct object_id *object, const char *object_ref,
 			struct strbuf buf = STRBUF_INIT;
 			strbuf_addch(&buf, '\n');
 			if (opt->cleanup_mode == CLEANUP_ALL)
-				strbuf_commented_addf(&buf, comment_line_str,
-				      _(tag_template), tag, comment_line_str);
+				strbuf_commented_addf(&buf, repo_get_comment_line_str(the_repository, NULL),
+				      _(tag_template), tag, repo_get_comment_line_str(the_repository, NULL));
 			else
-				strbuf_commented_addf(&buf, comment_line_str,
-				      _(tag_template_nocleanup), tag, comment_line_str);
+				strbuf_commented_addf(&buf, repo_get_comment_line_str(the_repository, NULL),
+				      _(tag_template_nocleanup), tag, repo_get_comment_line_str(the_repository, NULL));
 			write_or_die(fd, buf.buf, buf.len);
 			strbuf_release(&buf);
 		}
@@ -367,7 +367,7 @@ static void create_tag(const struct object_id *object, const char *object_ref,
 
 	if (opt->cleanup_mode != CLEANUP_NONE)
 		strbuf_stripspace(buf,
-		  opt->cleanup_mode == CLEANUP_ALL ? comment_line_str : NULL);
+		  opt->cleanup_mode == CLEANUP_ALL ? repo_get_comment_line_str(the_repository, NULL) : NULL);
 
 	if (!opt->message_given && !buf->len)
 		die(_("no tag message?"));

@@ -31,6 +31,7 @@
 #include "parse.h"
 #include "object-file.h"
 #include "object-file-convert.h"
+#include "config.h"
 
 static struct commit_extra_header *read_commit_extra_header_lines(const char *buf, size_t len, const char **);
 
@@ -1913,7 +1914,7 @@ size_t ignored_log_message_bytes(const char *buf, size_t len)
 		else
 			next_line++;
 
-		if (starts_with_mem(buf + bol, cutoff - bol, comment_line_str) ||
+		if (starts_with_mem(buf + bol, cutoff - bol, repo_get_comment_line_str(the_repository, NULL)) ||
 		    buf[bol] == '\n') {
 			/* is this the first of the run of comments? */
 			if (!boc)

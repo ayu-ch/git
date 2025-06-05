@@ -105,14 +105,6 @@ int protect_hfs = PROTECT_HFS_DEFAULT;
 #endif
 int protect_ntfs = PROTECT_NTFS_DEFAULT;
 
-/*
- * The character that begins a commented line in user-editable file
- * that is subject to stripspace.
- */
-const char *comment_line_str = "#";
-char *comment_line_str_to_free;
-int auto_comment_line_char;
-
 /* Parallel index stat data preload? */
 int core_preload_index = 1;
 
