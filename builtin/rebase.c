@@ -221,7 +221,7 @@ static int edit_todo_file(unsigned flags, struct replay_opts *opts)
 	if (strbuf_read_file(&todo_list.buf, todo_file, 0) < 0)
 		return error_errno(_("could not read '%s'."), todo_file);
 
-	strbuf_stripspace(&todo_list.buf, comment_line_str);
+	strbuf_stripspace(&todo_list.buf, repo_get_comment_line_str(the_repository, NULL));
 	res = edit_todo_list(the_repository, opts, &todo_list, &new_todo,
 			     NULL, NULL, flags);
 	if (!res && todo_list_write_to_file(the_repository, &new_todo, todo_file,

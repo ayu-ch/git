@@ -206,9 +206,7 @@ extern char *excludes_file;
  * The character that begins a commented line in user-editable file
  * that is subject to stripspace.
  */
-extern const char *comment_line_str;
-extern char *comment_line_str_to_free;
-extern int auto_comment_line_char;
+
 
 # endif /* USE_THE_REPOSITORY_VARIABLE */
 #endif /* ENVIRONMENT_H */
