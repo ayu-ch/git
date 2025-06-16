@@ -2144,6 +2144,7 @@ enum update_sparsity_result update_sparsity(struct unpack_trees_options *o,
 		BUG("update_sparsity() called wrong");
 
 	trace_performance_enter();
+	prepare_repo_settings(the_repository);
 
 	/* If we weren't given patterns, use the recorded ones */
 	if (!pl) {
