@@ -1125,6 +1125,8 @@ static int run_git_commit(const char *defmsg,
 {
 	struct child_process cmd = CHILD_PROCESS_INIT;
 
+	struct strbuf msg = STRBUF_INIT;
+
 	if ((flags & CLEANUP_MSG) && (flags & VERBATIM_MSG))
 		BUG("CLEANUP_MSG and VERBATIM_MSG are mutually exclusive");
 
@@ -1135,10 +1137,16 @@ static int run_git_commit(const char *defmsg,
 	     !(!defmsg && (flags & AMEND_MSG))) &&
 	    read_env_script(&cmd.env)) {
 		const char *gpg_opt = gpg_sign_opt_quoted(opts);
-
 		return error(_(staged_changes_advice),
 			     gpg_opt, gpg_opt);
 	}
+	if (strbuf_read_file(&msg, defmsg, 0) < 0)
+			die_errno(_("Could not read from '%s'"), defmsg);
+
+	cleanup_message(&msg, COMMIT_MSG_CLEANUP_ALL, 0);
+	if(write_message(msg.buf, msg.len, defmsg, 0))
+		die_errno(_("Could not write '%s'"), defmsg);
+	strbuf_release(&msg);
 
 	strvec_pushf(&cmd.env, GIT_REFLOG_ACTION "=%s", reflog_action);
 
