@@ -328,6 +328,25 @@ test_expect_success 'there is no --no-reschedule-failed-exec in an ongoing rebas
 	test_expect_code 129 git rebase --edit-todo --no-reschedule-failed-exec
 '
 
+test_expect_success 'no conflict comment in commit message with core.commentChar=auto' '
+	test_commit base file &&
+	git checkout -b branch-a &&
+	test_commit A file &&
+	git checkout -b branch-b base &&
+	test_commit B file &&
+	git checkout branch-b &&
+	test_must_fail git rebase branch-a &&
+	echo "B" >file &&
+	echo "A" >>file &&
+	git add file &&
+	write_script fake-editor <<-\EOF &&
+	exit 0
+	EOF
+	FAKE_EDITOR="$(pwd)/fake-editor" &&
+	GIT_EDITOR="\"\$FAKE_EDITOR\"" git -c core.commentChar=auto rebase --continue &&
+	test_grep "# Changes to be committed:" .git/COMMIT_EDITMSG
+'
+
 test_orig_head_helper () {
 	test_when_finished 'git rebase --abort &&
 		git checkout topic &&
