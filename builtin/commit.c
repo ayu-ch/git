@@ -689,6 +689,9 @@ static void adjust_comment_line_char(const struct strbuf *sb)
 	char *candidate;
 	const char *p;
 
+	if (ignored_log_message_bytes(sb->buf, sb->len))
+		return;
+
 	if (!memchr(sb->buf, candidates[0], sb->len)) {
 		free(comment_line_str_to_free);
 		comment_line_str = comment_line_str_to_free =
