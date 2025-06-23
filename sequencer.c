@@ -1118,12 +1118,15 @@ static int run_command_silent_on_success(struct child_process *cmd)
  * interactive rebase: in that case, we will want to retain the
  * author metadata.
  */
+static enum commit_msg_cleanup_mode cleanup_mode;
+
 static int run_git_commit(const char *defmsg,
 			  const char *reflog_action,
 			  struct replay_opts *opts,
 			  unsigned int flags)
 {
 	struct child_process cmd = CHILD_PROCESS_INIT;
+	struct strbuf msg = STRBUF_INIT;
 
 	if ((flags & CLEANUP_MSG) && (flags & VERBATIM_MSG))
 		BUG("CLEANUP_MSG and VERBATIM_MSG are mutually exclusive");
@@ -1135,7 +1138,13 @@ static int run_git_commit(const char *defmsg,
 	     !(!defmsg && (flags & AMEND_MSG))) &&
 	    read_env_script(&cmd.env)) {
 		const char *gpg_opt = gpg_sign_opt_quoted(opts);
+		if (strbuf_read_file(&msg, defmsg, 0) < 0)
+			die_errno(_("Could not read from '%s'"), defmsg);
 
+		cleanup_mode = COMMIT_MSG_CLEANUP_ALL;
+		cleanup_message(&msg, cleanup_mode, 0);
+		if(write_message(msg.buf, msg.len, defmsg, 0))
+			die_errno(_("Could not write '%s'"), defmsg);
 		return error(_(staged_changes_advice),
 			     gpg_opt, gpg_opt);
 	}
