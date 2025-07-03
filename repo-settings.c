@@ -230,3 +230,12 @@ void repo_settings_reset_shared_repository(struct repository *repo)
 {
 	repo->settings.shared_repository_initialized = 0;
 }
+
+// int repo_settings_get_is_bare_cfg(struct repository *repo)
+// {
+// 	prepare_repo_settings(repo);
+// 	if (repo->settings.is_bare_cfg < 0)
+// 		repo_cfg_bool(repo, "core.bare",
+// 			      &repo->settings.is_bare_cfg, 0);
+// 	return repo->settings.is_bare_cfg;
+// }
