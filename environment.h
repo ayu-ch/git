@@ -134,7 +134,6 @@ void setup_git_env(const char *git_dir);
  */
 int have_git_dir(void);
 
-extern int is_bare_repository_cfg;
 int is_bare_repository(void);
 extern char *git_work_tree_cfg;
 

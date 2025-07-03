@@ -35,7 +35,6 @@ int has_symlinks = 1;
 int minimum_abbrev = 4, default_abbrev = -1;
 int ignore_case;
 int assume_unchanged;
-int is_bare_repository_cfg = -1; /* unspecified */
 int warn_on_object_refname_ambiguity = 1;
 int repository_format_precious_objects;
 char *git_commit_encoding;
@@ -152,7 +151,7 @@ const char *getenv_safe(struct strvec *argv, const char *name)
 int is_bare_repository(void)
 {
 	/* if core.bare is not 'false', let's see if there is a work tree */
-	return is_bare_repository_cfg && !repo_get_work_tree(the_repository);
+	return repo_settings_get_is_bare_cfg(the_repository) && !repo_get_work_tree(the_repository);
 }
 
 int have_git_dir(void)
