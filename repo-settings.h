@@ -68,6 +68,7 @@ struct repo_settings {
 	unsigned long big_file_threshold;
 
 	char *hooks_path;
+	int is_bare_cfg;
 };
 #define REPO_SETTINGS_INIT { \
 	.shared_repository = -1, \
@@ -98,5 +99,7 @@ void repo_settings_set_big_file_threshold(struct repository *repo, unsigned long
 int repo_settings_get_shared_repository(struct repository *repo);
 void repo_settings_set_shared_repository(struct repository *repo, int value);
 void repo_settings_reset_shared_repository(struct repository *repo);
+
+int repo_settings_get_is_bare_cfg(struct repository *repo);
 
 #endif /* REPO_SETTINGS_H */
