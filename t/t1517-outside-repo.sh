@@ -121,4 +121,11 @@ test_expect_success 'prune does not crash with -h' '
 	test_grep "[Uu]sage: git prune " usage
 '
 
+test_expect_success 'write-tree does not crash with -h' '
+	test_expect_code 129 git write-tree -h >usage &&
+	test_grep "[Uu]sage: git write-tree " usage &&
+	test_expect_code 129 nongit git write-tree -h >usage &&
+	test_grep "[Uu]sage: git write-tree " usage
+'
+
 test_done
