@@ -43,6 +43,7 @@
 #include "wildmatch.h"
 #include "ws.h"
 #include "write-or-die.h"
+#include "fmt-merge-msg.h"
 
 struct config_source {
 	struct config_source *prev;
@@ -2717,6 +2718,29 @@ int repo_config_get_index_threads(struct repository *r, int *dest)
 	}
 
 	return 1;
+}
+
+void adjust_shortlog_len(struct repository *r, int *shortlog_len)
+{
+	const char *keys[] = { "merge.log", "merge.summary", NULL};
+	const char **key;
+	int is_bool, value;
+	
+	if (*shortlog_len >= 0)
+		return;
+
+	for (key = keys; *key; ++key) {
+		if (!repo_config_get_bool_or_int(r, *key, &is_bool, &value)) {
+			if (!is_bool && value < 0) {
+				error("%s: negative length %d", *key, value);
+				return;
+			}
+			*shortlog_len = (is_bool && value) ? DEFAULT_MERGE_LOG_LEN : value;
+			return;
+		}
+	}
+
+	*shortlog_len = 0;
 }
 
 NORETURN

@@ -690,6 +690,7 @@ int repo_config_get_maybe_bool(struct repository *r,
 int repo_config_get_index_threads(struct repository *r, int *dest);
 int repo_config_get_split_index(struct repository *r);
 int repo_config_get_max_percent_split_change(struct repository *r);
+void adjust_shortlog_len(struct repository *r, int *shortlog_len);
 
 /* This dies if the configured or default date is in the future */
 int repo_config_get_expiry(struct repository *r, const char *key, char **output);
