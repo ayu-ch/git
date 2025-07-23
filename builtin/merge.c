@@ -1374,6 +1374,7 @@ int cmd_merge(int argc,
 	struct commit_list *remoteheads = NULL, *p;
 	void *branch_to_free;
 	int orig_argc = argc;
+	int merge_log_config = -1;
 
 	show_usage_with_options_if_asked(argc, argv,
 					 builtin_merge_usage, builtin_merge_options);
@@ -1403,6 +1404,8 @@ int cmd_merge(int argc,
 		parse_branch_merge_options(branch_mergeoptions);
 	argc = parse_options(argc, argv, prefix, builtin_merge_options,
 			builtin_merge_usage, 0);
+
+	merge_log_config = repo_config_get_merge_log(the_repository);
 	if (shortlog_len < 0)
 		shortlog_len = (merge_log_config > 0) ? merge_log_config : 0;
 

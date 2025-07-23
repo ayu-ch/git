@@ -19,6 +19,7 @@ int cmd_fmt_merge_msg(int argc,
 	const char *message = NULL;
 	char *into_name = NULL;
 	int shortlog_len = -1;
+	int merge_log_config= -1;
 	struct option options[] = {
 		{
 			.type = OPTION_INTEGER,
@@ -58,6 +59,8 @@ int cmd_fmt_merge_msg(int argc,
 			     0);
 	if (argc > 0)
 		usage_with_options(fmt_merge_msg_usage, options);
+
+	merge_log_config = repo_config_get_merge_log(the_repository);
 	if (shortlog_len < 0)
 		shortlog_len = (merge_log_config > 0) ? merge_log_config : 0;
 
