@@ -58,8 +58,8 @@ int cmd_fmt_merge_msg(int argc,
 			     0);
 	if (argc > 0)
 		usage_with_options(fmt_merge_msg_usage, options);
-	if (shortlog_len < 0)
-		shortlog_len = (merge_log_config > 0) ? merge_log_config : 0;
+
+	adjust_shortlog_len(the_repository, &shortlog_len);
 
 	if (inpath && strcmp(inpath, "-")) {
 		in = fopen(inpath, "r");

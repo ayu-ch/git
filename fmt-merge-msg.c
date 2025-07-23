@@ -26,14 +26,7 @@ static struct string_list suppress_dest_patterns = STRING_LIST_INIT_DUP;
 int fmt_merge_msg_config(const char *key, const char *value,
 			 const struct config_context *ctx, void *cb)
 {
-	if (!strcmp(key, "merge.log") || !strcmp(key, "merge.summary")) {
-		int is_bool;
-		merge_log_config = git_config_bool_or_int(key, value, ctx->kvi, &is_bool);
-		if (!is_bool && merge_log_config < 0)
-			return error("%s: negative length %s", key, value);
-		if (is_bool && merge_log_config)
-			merge_log_config = DEFAULT_MERGE_LOG_LEN;
-	} else if (!strcmp(key, "merge.branchdesc")) {
+	if (!strcmp(key, "merge.branchdesc")) {
 		use_branch_desc = git_config_bool(key, value);
 	} else if (!strcmp(key, "merge.suppressdest")) {
 		if (!value)
@@ -645,6 +638,27 @@ static void find_merge_parents(struct merge_parents *result,
 	result->nr = j;
 }
 
+void adjust_shortlog_len(struct repository *r, int *shortlog_len)
+{
+	const char *keys[] = { "merge.log", "merge.summary", NULL};
+	
+	if (*shortlog_len >= 0)
+		return;
+
+	for (const char **key = keys; *key; ++key) {
+		int is_bool, value;
+		if (!repo_config_get_bool_or_int(r, *key, &is_bool, &value)) {
+			if (!is_bool && value < 0) {
+				error("%s: negative length %d", *key, value);
+				return;
+			}
+			*shortlog_len = (is_bool && value) ? DEFAULT_MERGE_LOG_LEN : value;
+			return;
+		}
+	}
+
+	*shortlog_len = 0;
+}
 
 int fmt_merge_msg(struct strbuf *in, struct strbuf *out,
 		  struct fmt_merge_msg_opts *opts)

@@ -2,6 +2,7 @@
 #define FMT_MERGE_MSG_H
 
 #include "strbuf.h"
+#include "repository.h"
 
 #define DEFAULT_MERGE_LOG_LEN 20
 
@@ -12,9 +13,9 @@ struct fmt_merge_msg_opts {
 	const char *into_name;
 };
 
-extern int merge_log_config;
 int fmt_merge_msg_config(const char *key, const char *value,
 			 const struct config_context *ctx, void *cb);
+void adjust_shortlog_len(struct repository *r, int *shortlog_len);
 int fmt_merge_msg(struct strbuf *in, struct strbuf *out,
 		  struct fmt_merge_msg_opts *);
 
