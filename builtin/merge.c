@@ -1403,8 +1403,8 @@ int cmd_merge(int argc,
 		parse_branch_merge_options(branch_mergeoptions);
 	argc = parse_options(argc, argv, prefix, builtin_merge_options,
 			builtin_merge_usage, 0);
-	if (shortlog_len < 0)
-		shortlog_len = (merge_log_config > 0) ? merge_log_config : 0;
+
+	adjust_shortlog_len(the_repository, &shortlog_len);
 
 	if (verbosity < 0 && show_progress == -1)
 		show_progress = 0;
