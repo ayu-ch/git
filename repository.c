@@ -57,6 +57,7 @@ void initialize_repository(struct repository *repo)
 	repo->parsed_objects = parsed_object_pool_new(repo);
 	ALLOC_ARRAY(repo->index, 1);
 	index_state_init(repo->index, repo);
+	repo->sparse_checkout = -1;
 
 	/*
 	 * When a command runs inside a repository, it learns what
@@ -81,6 +82,13 @@ void initialize_repository(struct repository *repo)
 		set_default_hash_algo(repo);
 }
 
+void repo_init_sparse_checkout(struct repository *repo)
+{
+	if (repo->sparse_checkout < 0) {
+		if(repo_config_get_bool(repo, "core.sparsecheckout", &repo->sparse_checkout))
+			repo->sparse_checkout = 0;
+	}
+}
 static void expand_base_dir(char **out, const char *in,
 			    const char *base_dir, const char *def_in)
 {
