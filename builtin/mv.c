@@ -574,7 +574,7 @@ remove_entry:
 		repo_init_sparse_checkout(the_repository);
 		if (ignore_sparse &&
 		    the_repository->sparse_checkout &&
-		    core_sparse_checkout_cone) {
+		    the_repository->sparse_checkout_cone) {
 			/*
 			 * NEEDSWORK: we are *not* paying attention to
 			 * "out-to-out" move (<source> is out-of-cone and
