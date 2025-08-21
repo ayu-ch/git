@@ -81,6 +81,14 @@ void initialize_repository(struct repository *repo)
 		set_default_hash_algo(repo);
 }
 
+void repo_init_sparse_checkout(struct repository *repo)
+{
+	if (repo->sparse_checkout < 0) {
+		if(repo_config_get_bool(repo, "core.sparsecheckout", &repo->sparse_checkout))
+			BUG("Invalid core.sparsecheckout value");
+	}
+}
+
 static void expand_base_dir(char **out, const char *in,
 			    const char *base_dir, const char *def_in)
 {
@@ -286,6 +294,7 @@ int repo_init(struct repository *repo,
 	repo->repository_format_worktree_config = format.worktree_config;
 	repo->repository_format_relative_worktrees = format.relative_worktrees;
 	repo->repository_format_precious_objects = format.precious_objects;
+	the_repository->sparse_checkout = -1;
 
 	/* take ownership of format.partial_clone */
 	repo->repository_format_partial_clone = format.partial_clone;
