@@ -163,6 +163,7 @@ struct repository {
 	unsigned different_commondir:1;
 
 	int sparse_checkout;
+	int sparse_checkout_cone;
 };
 
 #ifdef USE_THE_REPOSITORY_VARIABLE
