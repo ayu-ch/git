@@ -1516,7 +1516,8 @@ done:
 
 int init_sparse_checkout_patterns(struct index_state *istate)
 {
-	if (!core_apply_sparse_checkout)
+	repo_init_sparse_checkout(istate->repo);
+	if (!istate->repo->sparse_checkout)
 		return 1;
 	if (istate->sparse_checkout_patterns)
 		return 0;
