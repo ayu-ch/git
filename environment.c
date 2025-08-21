@@ -75,7 +75,6 @@ enum push_default_type push_default = PUSH_DEFAULT_UNSPECIFIED;
 #endif
 enum object_creation_mode object_creation_mode = OBJECT_CREATION_MODE;
 int grafts_keep_true_parents;
-int core_sparse_checkout_cone;
 int sparse_expect_files_outside_of_patterns;
 int merge_log_config = -1;
 int precomposed_unicode = -1; /* see probe_utf8_pathname_composition() */
@@ -527,11 +526,6 @@ static int git_default_core_config(const char *var, const char *value,
 			object_creation_mode = OBJECT_CREATION_USES_HARDLINKS;
 		else
 			die(_("invalid mode for object creation: %s"), value);
-		return 0;
-	}
-
-	if (!strcmp(var, "core.sparsecheckoutcone")) {
-		core_sparse_checkout_cone = git_config_bool(var, value);
 		return 0;
 	}
 

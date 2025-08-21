@@ -83,10 +83,11 @@ void initialize_repository(struct repository *repo)
 
 void repo_init_sparse_checkout(struct repository *repo)
 {
-	if(repo->sparse_checkout)
-		return;
+	if(!repo->sparse_checkout)
+		repo_config_get_bool(repo, "core.sparsecheckout", &repo->sparse_checkout);
 
-	repo_config_get_bool(repo, "core.sparsecheckout", &repo->sparse_checkout);
+	if(!repo->sparse_checkout_cone)
+		repo_config_get_bool(repo, "core.sparsecheckoutcone", &repo->sparse_checkout_cone);
 }
 
 static void expand_base_dir(char **out, const char *in,
