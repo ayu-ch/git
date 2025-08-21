@@ -536,7 +536,8 @@ static int add_worktree(const char *path, const char *refname,
 	 * If the current worktree has sparse-checkout enabled, then copy
 	 * the sparse-checkout patterns from the current worktree.
 	 */
-	if (core_apply_sparse_checkout)
+	repo_init_sparse_checkout(the_repository);
+	if (the_repository->sparse_checkout)
 		copy_sparse_checkout(sb_repo.buf);
 
 	/*
