@@ -151,7 +151,7 @@ static int index_has_unmerged_entries(struct index_state *istate)
 int is_sparse_index_allowed(struct index_state *istate, int flags)
 {
 	repo_init_sparse_checkout(istate->repo);
-	if (!istate->repo->sparse_checkout || !core_sparse_checkout_cone)
+	if (!istate->repo->sparse_checkout || !istate->repo->sparse_checkout_cone)
 		return 0;
 
 	if (!(flags & SPARSE_INDEX_MEMORY_ONLY)) {
