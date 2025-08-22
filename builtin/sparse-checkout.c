@@ -1097,6 +1097,7 @@ int cmd_sparse_checkout(int argc,
 	the_repository->settings.command_requires_full_index = 0;
 	the_repository->sparse_checkout = -1;
 	the_repository->sparse_checkout_cone = -1;
+	the_repository->sparse_expect_files_outside_of_patterns = -1;
 
 	return fn(argc, argv, prefix, repo);
 }

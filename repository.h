@@ -164,6 +164,7 @@ struct repository {
 
 	int sparse_checkout;
 	int sparse_checkout_cone;
+	int sparse_expect_files_outside_of_patterns;
 };
 
 #ifdef USE_THE_REPOSITORY_VARIABLE

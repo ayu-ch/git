@@ -88,6 +88,11 @@ void repo_init_sparse_checkout(struct repository *repo)
 
 	if (repo->sparse_checkout_cone < 0)
 		repo_config_get_bool(repo, "core.sparsecheckoutcone", &repo->sparse_checkout_cone);
+
+	if (repo->sparse_expect_files_outside_of_patterns < 0){
+		repo_config_get_bool(repo, "sparse.expectfilesoutsideofpatterns",
+			&repo->sparse_expect_files_outside_of_patterns);
+	}
 }
 
 static void expand_base_dir(char **out, const char *in,
