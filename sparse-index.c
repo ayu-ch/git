@@ -1,4 +1,3 @@
-#define USE_THE_REPOSITORY_VARIABLE
 #define DISABLE_SIGN_COMPARE_WARNINGS
 
 #include "git-compat-util.h"
@@ -671,7 +670,7 @@ void clear_skip_worktree_from_present_files(struct index_state *istate)
 {
 	repo_init_sparse_checkout(istate->repo);
 	if (!istate->repo->sparse_checkout ||
-	    sparse_expect_files_outside_of_patterns)
+	    istate->repo->sparse_expect_files_outside_of_patterns)
 		return;
 
 	if (clear_skip_worktree_from_present_files_sparse(istate)) {

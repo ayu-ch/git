@@ -94,6 +94,11 @@ void repo_init_sparse_checkout(struct repository *repo)
 		if(!repo_config_get_bool(repo, "core.sparsecheckoutcone", &val))
 			repo->sparse_checkout_cone = val;
 	}
+
+	if (!repo->sparse_expect_files_outside_of_patterns){
+		if(!repo_config_get_bool(repo, "sparse.expectfilesoutsideofpatterns", &val))
+			repo->sparse_expect_files_outside_of_patterns = val;
+	}
 }
 
 static void expand_base_dir(char **out, const char *in,
