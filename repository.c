@@ -88,6 +88,9 @@ void repo_init_sparse_checkout(struct repository *repo)
 			BUG("Invalid core.sparsecheckout value");
 		if(repo_config_get_bool(repo, "core.sparsecheckoutcone", &repo->sparse_checkout_cone))
 			BUG("Invalid core.sparsecheckoutcone value");
+		if(repo_config_get_bool(repo, "sparse.expectfilesoutsideofpatterns",
+			&repo->sparse_expect_files_outside_of_patterns))
+			BUG("Invalid sparse.expectfilesoutsideofpatterns value");
 	}
 }
 static void expand_base_dir(char **out, const char *in,
@@ -297,6 +300,7 @@ int repo_init(struct repository *repo,
 	repo->repository_format_precious_objects = format.precious_objects;
 	the_repository->sparse_checkout = -1;
 	the_repository->sparse_checkout_cone = -1;
+	the_repository->sparse_expect_files_outside_of_patterns = -1;
 
 	/* take ownership of format.partial_clone */
 	repo->repository_format_partial_clone = format.partial_clone;
